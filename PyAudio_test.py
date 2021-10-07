@@ -1,8 +1,8 @@
 import pyaudio
 import wave
 
-FILE_PATH = "C:/Users/rtsumura1990/Documents/Program/RoboticAuscultation/test.wav"
-# FILE_PATH = "test.wav"
+# FILE_PATH = "C:/Users/rtsumura1990/Documents/Program/RoboticAuscultation/test.wav"
+FILE_PATH = "test.wav"
 CHUNK = 1024
  
 wf = wave.open(FILE_PATH, 'rb')
