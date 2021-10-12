@@ -45,12 +45,15 @@ while True:
         wave_y = np.abs(wave_y)
 
         # dB変換
-        # wave_y = db(np.sqrt(wave_y),dBref)
+        wave_y = db(np.sqrt(wave_y),dBref)
 
+        # データ整理
         wave_y2 = wave_y[0:chunk2]
         
         # ピーク検出処理
-        # 
+        peak = max(wave_y2)
+        print('ピークdB:',peak)
+        print('ピーク周波数：', wave_x2[np.argmax(wave_y2)])
 
         # グラフ表示
         plt.plot(wave_x2,wave_y2)
