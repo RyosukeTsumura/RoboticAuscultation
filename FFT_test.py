@@ -7,14 +7,13 @@ form_1 = pyaudio.paInt16 # 16-bit resolution
 chans = 1 # 1 channel
 samp_rate = 44100 # 44.1kHz　サンプリング周波数
 N = 1
-chunk = 1024*N # 2^12 一度に取得するデータ数
-record_secs = 3 # 録音する秒数
+chunk = 1024*N # 一度に取得するデータ数
 dev_index = 1 # デバイス番号
-wav_output_filename = 'test.wav' # 出力するファイル
 sleepTime = 0.0001
 
 dBref = 2e-5
 
+# dBへの変換
 def db(x, dBref):
     with np.errstate(divide='ignore', invalid='ignore'):
         y = 20 * np.log10(x / dBref)     #変換式
@@ -43,12 +42,17 @@ while True:
         
         # FFT
         wave_y = np.fft.fft(ndarray)
-        # wave_y = np.abs(wave_y)
+        wave_y = np.abs(wave_y)
+
+        # dB変換
         # wave_y = db(np.sqrt(wave_y),dBref)
 
         wave_y2 = wave_y[0:chunk2]
         
-        # リアルタイムにグラフ表示
+        # ピーク検出処理
+        # 
+
+        # グラフ表示
         plt.plot(wave_x2,wave_y2)
         plt.draw()
         plt.pause(sleepTime)
