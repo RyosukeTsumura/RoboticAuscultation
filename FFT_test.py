@@ -58,6 +58,7 @@ while True:
         # グラフ表示
         plt.plot(wave_x2,wave_y2)
         plt.draw()
+        plt.xscale('log')
         plt.pause(sleepTime)
         plt.cla()
     except KeyboardInterrupt:

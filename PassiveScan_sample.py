@@ -8,6 +8,8 @@ import pyaudio
 import wave
 import numpy as np
 import matplotlib.pyplot as plt
+import statistics
+import math
 
 global delta
 global target
@@ -23,7 +25,8 @@ chunk = 1024*N # 一度に取得するデータ数
 dev_index = 1 # デバイス番号
 sleepTime = 0.0001
 
-dBref = 2e-5
+# dBref = 2e-5
+dBref = 1
 
 # dBへの変換
 def db(x, dBref):
@@ -83,6 +86,7 @@ def passive_ausc():
     Kp = 0.5
     TI = 10000
     TD = 1
+    peak = np.zeros(1)
 
     # for _ in range(1200):
     #     time.sleep(0.02)
@@ -102,7 +106,40 @@ def passive_ausc():
     #     print(r)
 
     while True:
+       
         try:
+            dwf.FDwfAnalogInStatus(hdwf, False, None) 
+            dwf.FDwfAnalogInStatusSample(hdwf, c_int(0), byref(voltage1))
+            delta = vol2mm(voltage1.value) - target
+            
+            accum_delta += delta
+            inc_val = Kp*(delta+(1/TI)*accum_delta+TD*(delta-pre_delta));
+            pre_delta = delta
+            currentPos += inc_val
+
+            delta_ez = str(round(currentPos*4096/27))
+            # print(delta_ez)
+            ser.write(str.encode(delta_ez+"\0"))
+            r = ser.read()
+            # print(r)
+
+            # delta = vol2mm(voltage1.value) - target
+            # while abs(delta)>0.1:
+            #     dwf.FDwfAnalogInStatus(hdwf, False, None) 
+            #     dwf.FDwfAnalogInStatusSample(hdwf, c_int(0), byref(voltage1))
+            #     delta = vol2mm(voltage1.value) - target
+                
+            #     accum_delta += delta
+            #     inc_val = Kp*(delta+(1/TI)*accum_delta+TD*(delta-pre_delta));
+            #     pre_delta = delta
+            #     currentPos += inc_val
+
+            #     delta_ez = str(round(currentPos*4096/27))
+            #     print(delta_ez)
+            #     ser.write(str.encode(delta_ez+"\0"))
+            #     r = ser.read()
+            #     print(r)
+            
             # 音声データの取得
             data = stream.read(chunk)
             ndarray = np.frombuffer(data, dtype='int16')
@@ -112,36 +149,29 @@ def passive_ausc():
             wave_y = np.abs(wave_y)
 
             # dB変換
-            # wave_y = db(np.sqrt(wave_y),dBref)
+            wave_y = db(wave_y,dBref)
 
             # データ整理
             wave_y2 = wave_y[0:chunk2]
             
             # ピーク検出処理
-            # peak = max(wave_y2)
+            peak_tmp = max(wave_y2[100:chunk2])
+            peak = np.append(peak, peak_tmp)
+            # print(peak)
+            if len(peak)>10:
+                peak_var = statistics.variance(peak[-100:-1])
+                print(peak_var)
+                if peak_var < 10:
+                    break
             # print('ピークdB:',peak)
             # print('ピーク周波数：', wave_x2[np.argmax(wave_y2)])
 
             # グラフ表示
             plt.plot(wave_x2,wave_y2)
+            plt.xscale('log')
             plt.draw()
             plt.pause(sleepTime)
             plt.cla()
-
-            dwf.FDwfAnalogInStatus(hdwf, False, None) 
-            dwf.FDwfAnalogInStatusSample(hdwf, c_int(0), byref(voltage1))
-
-            delta = vol2mm(voltage1.value) - target
-            accum_delta += delta
-            inc_val = Kp*(delta+(1/TI)*accum_delta+TD*(delta-pre_delta));
-            pre_delta = delta
-            currentPos += inc_val
-
-            delta_ez = str(round(currentPos*4096/27))
-            print(delta_ez)
-            ser.write(str.encode(delta_ez+"\0"))
-            r = ser.read()
-            print(r)
 
         except KeyboardInterrupt:
             print("Ctrl+Cで停止しました")
@@ -164,7 +194,7 @@ if __name__ == '__main__':
     pre_delta = 0
     # target = 112.5
     target = 85
-    ser = serial.Serial('COM12',9600,timeout=0.1)
+    ser = serial.Serial('COM8',9600,timeout=0.1)
 
     """
     Config_Analog Discovery 2

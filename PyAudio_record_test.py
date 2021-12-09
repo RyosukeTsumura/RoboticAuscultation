@@ -2,6 +2,9 @@ from numpy.core.numeric import Inf
 import pyaudio
 import numpy as np
 from matplotlib import pyplot as plt
+import csv
+import pprint
+import pandas as pd
 
 time = 5            # 計測時間[s]
 samplerate = 44100  # サンプリングレート
@@ -73,6 +76,44 @@ fig.tight_layout()
 plt.show()
 plt.close()
 
+# # FFT
+# wave_y = np.fft.fft(wfm)
+# wave_y = np.abs(wave_y)
+
+# # # dB変換
+# # wave_y = db(wave_y,dBref)
+
+# wave_x = np.linspace(0, samplerate, fs)
+# chunk = int(fs/2)
+# wave_x2 = wave_x[0:chunk]
+
+# # データ整理
+# wave_y2 = wave_y[0:chunk]
+# plt.plot(wave_x2,wave_y2)
+# plt.xscale('log')
+# plt.show()
+# plt.close()
+
+tmp = np.vstack((np.array(wfm),np.array(t)))
+pd.DataFrame(tmp.T).to_csv('sample.csv')
+
+fft_data = np.abs(np.fft.rfft(wfm))
+freqList = np.fft.rfftfreq(len(wfm), 1.0 / samplerate)  # 横軸
+# plt.loglog(freqList, 10 * np.log(fft_data), '.-')
+fft_data_dB = 10*np.log(np.power(fft_data,2))
+# plt.plot(freqList,fft_data_dB-max(fft_data_dB))
+plt.plot(freqList, 20 * np.log10(fft_data))
+plt.xscale('log')
+plt.xlabel('Frequency')
+plt.ylabel('Power')
+plt.show()
+
+
+# with open('sample.csv', 'w') as f:
+#     writer = csv.writer(f)
+    
+#     writer.writerows(((np.array(wfm,t)).astype(int).T))
+#     # writer.writerow(['a', 'b', 'c'])
 # import pyaudio  #録音機能を使うためのライブラリ
 # import wave     #wavファイルを扱うためのライブラリ
  
