@@ -161,7 +161,7 @@ if __name__ == '__main__':
     pre_delta = 0
     # target = 112.5
 
-    ser = serial.Serial('COM8',9600,timeout=0.1)
+    ser = serial.Serial('COM3',9600,timeout=0.1)
 
     """
     Config_Analog Discovery 2
